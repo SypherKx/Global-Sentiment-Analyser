@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-pymongo[srv]
-tweepy
-vaderSentiment
-passlib[bcrypt]
-python-multipart
-pydantic
-python-dotenv
