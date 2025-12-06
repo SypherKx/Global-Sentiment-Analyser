@@ -1,0 +1,10 @@
+streamlit
+pandas
+matplotlib
+vaderSentiment
+passlib[bcrypt]
+pymongo[srv]
+dnspython
+snscrape==0.4.3.20220106
+tweepy
+seaborn
