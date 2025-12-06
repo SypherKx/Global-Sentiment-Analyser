@@ -1,15 +1,3 @@
-import axios from 'axios';
-
-// For Vercel deployment: Use client-side mock data generation
-// This ensures the app ALWAYS works, even without a live backend
-
-export const api = axios.create({
-    baseURL: '/api', // This will be handled by our mock interceptor
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
 export interface Tweet {
     id: string;
     text: string;
@@ -35,8 +23,6 @@ export interface AnalysisResponse {
 }
 
 // ============ CLIENT-SIDE MOCK DATA GENERATOR ============
-// This runs entirely in the browser - NO BACKEND NEEDED
-
 const templates = {
     Positive: [
         "Bullish on {topic}! The fundamentals look incredibly strong right now. 🚀",
@@ -74,7 +60,6 @@ function generateMockData(query: string): AnalysisResponse {
     const tweets: Tweet[] = [];
     const summary = { Positive: 0, Negative: 0, Neutral: 0 };
 
-    // Random bias for this search session
     const biases = ['Positive', 'Negative', 'Neutral', 'Mixed'];
     const bias = biases[Math.floor(Math.random() * biases.length)];
 
@@ -118,38 +103,17 @@ function generateMockData(query: string): AnalysisResponse {
         });
     }
 
-    // Shuffle
     tweets.sort(() => Math.random() - 0.5);
-
     return { summary, tweets };
 }
 
-// Intercept API calls and return mock data (works without backend)
-api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        // If backend fails (404, network error, etc.), use mock data
-        if (error.config?.url?.includes('/analyze')) {
-            const query = JSON.parse(error.config.data || '{}').query || 'Topic';
-            console.log('🎭 Using Smart Demo Mode for:', query);
-            return Promise.resolve({
-                data: generateMockData(query),
-                status: 200,
-                statusText: 'OK (Demo Mode)',
-                headers: {},
-                config: error.config,
-            });
-        }
-        return Promise.reject(error);
-    }
-);
+// Create a fake API object that ALWAYS uses mock data (no network calls)
+export const api = {
+    post: async (_url: string, data: { query: string; limit?: number }): Promise<{ data: AnalysisResponse }> => {
+        // Simulate network delay for realism
+        await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
 
-// Also add a request interceptor to enable demo mode on Vercel
-api.interceptors.request.use((config) => {
-    // In production without backend, immediately trigger mock response
-    if (import.meta.env.PROD && config.url?.includes('/analyze')) {
-        // Force a quick rejection so error interceptor handles it with mock data
-        config.timeout = 3000; // 3 second timeout before falling back to mock
+        console.log('🎭 Smart Demo Mode - Analyzing:', data.query);
+        return { data: generateMockData(data.query) };
     }
-    return config;
-});
+};
