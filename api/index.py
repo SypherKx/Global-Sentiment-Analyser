@@ -1,4 +1,7 @@
-from backend.main import app
+import sys
+import os
 
-# This entry point is specifically for Vercel
-# Vercel looks for 'app' variable in api/index.py by default
+# Add the current directory to sys.path so we can import from 'backend'
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from backend.main import app
